@@ -69,53 +69,53 @@ Test::Stub::Generator is library for supports the programmer in wriring test cod
 
 ## single value
     $obj->method(1);
-    \#{ expects => \[ 1 \], return => xxxx }
+    #{ expects => [ 1 ], return => xxxx }
 
     is_deeply( $obj->method($MEANINGLESS), 1, 'single' );
     #{ expects => xxxx, return => 1 }
 
 ## array value
     $obj->method( 0, 1 );
-    \#{ expects => \[ ( 0, 1 ) \], return => xxxx }
+    #{ expects => [ ( 0, 1 ) ], return => xxxx }
 
     is_deeply( [$obj->method($MEANINGLESS)], [ ( 0, 1 ) ], 'array' );
     #{ expects => xxxx, return => sub{ ( 0, 1 ) } }
 
 ## hash value
     $obj->method(a => 1);
-    \#{ expects => \[ a => 1 \], return => xxxx }
+    #{ expects => [ a => 1 ], return => xxxx }
 
     is_deeply( [$obj->method($MEANINGLESS)], [ a => 1 ], 'hash' );
     #{ expects => xxxx, return => sub{ a => 1 } }
 
 ## array ref
-    $obj->method( \[ 0, 1 \] );
-    \#{ expects => \[ \[ 0, 1 \] \], return => xxxx }
+    $obj->method( [ 0, 1 ] );
+    #{ expects => [ [ 0, 1 ] ], return => xxxx }
 
     is_deeply( $obj->method($MEANINGLESS), [ 0, 1 ], 'array_ref' );
     #{ expects => xxxx, return => [ 0, 1 ] }
 
 ## hash ref
     $obj->method( { a => 1 } );
-    \#{ expects => \[ { a => 1 } \], return => xxxx }
+    #{ expects => [ { a => 1 } ], return => xxxx }
 
     is_deeply( $obj->method($MEANINGLESS), { a => 1 }, 'hash_ref' );
     #{ expects => xxxx, return => { a => 1 } }
 
 ## complex values
-    $obj->method( 0, \[ 0, 1 \], { a => 1 } );
-    \#{ expects => \[ 0, \[ 0, 1 \], { a => 1 } \], return => xxxx }
+    $obj->method( 0, [ 0, 1 ], { a => 1 } );
+    #{ expects => [ 0, [ 0, 1 ], { a => 1 } ], return => xxxx }
 
     is_deeply( $obj->method($MEANINGLESS), [ 0, [ 0, 1 ], { a => 1 } ], 'complex' );
     #{ expects => xxxx, return => [ 0, [ 0, 1 ], { a => 1 } ] }
 
 ## dont check arguments (Test::Deep)
     $obj->method(sub{},1);
-    \#{ expects => \[ignore, 1\], return => xxxx }
+    #{ expects => [ignore, 1], return => xxxx }
 
 ## check argument using type (Test::Deep::Matcher)
     $obj->method(1);
-    \#{ expects => \[is\_integer\], return => xxxx }
+    #{ expects => [is_integer], return => xxxx }
 
     $obj->method("AAAA");
     #{ expects => [is_string],  return => xxxx }
