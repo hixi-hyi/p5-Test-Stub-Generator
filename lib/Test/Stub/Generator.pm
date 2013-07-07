@@ -65,7 +65,7 @@ sub _from_list {
 sub _build_subroutine {
     my ($er_list, $opts) = @_;
 
-    my $name      = $opts->{name}      || 'make_method';
+    my $display   = $opts->{display}   || 'stub';
     my $is_object = $opts->{is_object} || 0;
     my $is_repeat = $opts->{is_repeat} || 0;
 
@@ -82,7 +82,7 @@ sub _build_subroutine {
         my $expects = $er->{expects};
         my $return  = $er->{return};
 
-        cmp_deeply($input, $expects, "[$name] arguments are as You expected")
+        cmp_deeply($input, $expects, "[$display] arguments are as You expected")
             or note explain +{ input => $input, expects => $expects };
 
         return (ref $return eq 'CODE')? $return->() : $return;

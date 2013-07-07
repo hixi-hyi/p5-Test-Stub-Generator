@@ -23,7 +23,7 @@ my $method = make_method_from_list(
     expects => $expects,
     return  => $return,
     opts    => {
-        name => 'increment',
+        display => 'increment',
     }
 );
 

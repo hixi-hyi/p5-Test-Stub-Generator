@@ -9,6 +9,9 @@ my $increment = make_subroutine(
         { expects => [0], return => 1, },
         { expects => [1], return => 2, },
     ],
+    {
+        display => 'method',
+    }
 );
 
 is( &$increment(0), 1, 'sub return are as You expected' );

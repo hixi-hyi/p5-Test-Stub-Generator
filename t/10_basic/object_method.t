@@ -15,6 +15,9 @@ my $method = make_method(
         { expects => [0], return => 1, },
         { expects => [1], return => 2, },
     ],
+    {
+        display => 'method',
+    }
 );
 
 my $obj = Some::Class->new;

@@ -17,7 +17,7 @@ my $increment = make_subroutine_from_list(
     expects => $expects,
     return  => $return,
     opts    => {
-        name => 'increment',
+        display => 'increment',
     }
 );
 
