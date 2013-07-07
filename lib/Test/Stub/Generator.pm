@@ -102,98 +102,115 @@ Test::Stub::Generator - be able to generate submodule/method having check argume
 
     use strict;
     use warnings;
-
+    
     use Test::More;
-    use Test::Deep qw(ignore);
-    use Test::Deep::Matcher qw(is_integer is_string);
-    use Test::Mock::Guard;
+    use Test::Deep;
+    use Test::Deep::Matcher;
     use Test::Stub::Generator;
-
+    
+    ###
+    # sample package
+    ###
     package Some::Class;
-
-    sub new { bless {}, shift }
-    sub has_permission {
-        my ($self, $user_id) = @_;
-        return 0;
-    }
-    sub get_all_user_id {
-        my ($self, $dbh) = @_;
-        return 0;
-    }
-    sub get_user_by_id {
-        my ($self, $dbh, $user_id) = @_;
-        return 0;
-    }
-    sub validate {
-        my ($self, $user) = @_;
-        return 0;
-    }
-    sub get_authorized_user {
-        my $self = shift;
-        my $dbh = undef;
-        my $user_ids = $self->get_all_user_id($dbh);
-        my $authorized_users = [];
-        for my $user_id (@$user_ids) {
-            if($self->has_permission($user_id)) {
-                my $user = $self->get_user_by_id($dbh, $user_id);
-                push @$authorized_users, $user if $self->validate($user);
-            }
-        }
-        return $authorized_users;
-    }
-
+    sub new { bless {}, shift };
+    sub method;
+    
+    ###
+    # test code
+    ###
     package main;
-
-    my $has_permission = make_method(
+    
+    my $MEANINGLESS = -1;
+    my $SINGLE      = 0;
+    my @ARRAY       = ( 0, 1 );
+    my %HASH        = ( a => 1 );
+    my $A_REF       = [ 0, 1 ];
+    my $H_REF       = { a => 1 };
+    my @COMPLEX     = ( $SINGLE, $A_REF, $H_REF );
+    
+    *Some::Class::method = make_method(
         [
-            { expects => [1], return => 1 },
-            { expects => [2], return => 0 },
-            { expects => [3], return => 1 },
-            { expects => [4], return => 1 },
-        ],
-        { name => 'has_permission' }
-    );
-
-    my $get_user_by_id = make_method(
-        [
-            { expects => [ ignore, 1 ], return => { id => 1, name => 'user1' } },
-            { expects => [ ignore, 3 ], return => { id => 3, name => 'user3' } },
-            { expects => [ ignore, 4 ], return => { id => 4, name => 'user4' } },
-        ],
-        { name   => 'get_user_by_id' }
-    );
-
-    my $validate = make_method(
-        [
-            { expects => [ { id => is_integer, name => is_string } ], return => 1 },
+            # checking argument
+            { expects => [ $SINGLE ],   return => $MEANINGLESS }, #1A single value
+            { expects => [ @ARRAY ],    return => $MEANINGLESS }, #1B array
+            { expects => [ %HASH ],     return => $MEANINGLESS }, #1C hash
+            { expects => [ $A_REF ],    return => $MEANINGLESS }, #1D array_ref
+            { expects => [ $H_REF ],    return => $MEANINGLESS }, #1E hash_ref
+            { expects => [ @COMPLEX ],  return => $MEANINGLESS }, #1F multi value
+            # cotrol return_values
+            { expects => [$MEANINGLESS], return => $SINGLE }, #2A single
+            { expects => [$MEANINGLESS], return => $A_REF }, #2B array_ref
+            { expects => [$MEANINGLESS], return => $H_REF }, #2C hash_ref
+            { expects => [$MEANINGLESS], return => [ @COMPLEX ] }, #2D multi value
+            { expects => [$MEANINGLESS], return => sub{ @ARRAY } }, #2E array
+            { expects => [$MEANINGLESS], return => sub{ %HASH } }, #2F hash
+            # dont check argument (using Test::Deep)
+            { expects => [ignore, 1], return => [$MEANINGLESS] },
+            # checking type (using Test::Deep::Matcher)
+            { expects => [is_integer], return => [$MEANINGLESS] },
+            { expects => [is_string],  return => [$MEANINGLESS] },
         ],
         {
-            is_repeat => 1,
-            name      => 'validate',
+            display => 'synopisis'
         }
     );
-
+    
     my $obj = Some::Class->new;
-    my $guard = mock_guard(
-        $obj => {
-            'get_all_user_id' => [ 1, 2, 3, 4 ],
-            'get_user_by_id'  => $get_user_by_id,
-            'has_permission'  => $has_permission,
-            'validate'        => $validate,
-        }
-    );
+    
+    subtest "auto check method argument" => sub {
+        $obj->method($SINGLE);
+        #{ expects => [ $SINGLE ], return => xxxx }, #1A single
+    
+        $obj->method(@ARRAY);
+        #{ expects => [ @ARRAY ], return => xxxx }, #1B array
+    
+        $obj->method(%HASH); #1C hash
+        #{ expects => [ %HASH ], return => xxxx }, #1C hash
+    
+        $obj->method($A_REF); #1D array_ref
+        #{ expects => [ $A_REF ], return => xxxx }, #1D array_ref
+    
+        $obj->method($H_REF); #1E hash_ref
+        #{ expects => [ $H_REF ], return => xxxx }, #1E hash_ref
+    
+        $obj->method(@COMPLEX); #1F multi value
+        #{ expects => [ @COMPLEX ], return => xxxx }, #1F multi value
+    };
+    
+    subtest "control return_values" => sub {
+        is_deeply( $obj->method($MEANINGLESS), $SINGLE, '2A single value' );
+        #{ expects => xxxx, return => $SINGLE }, #2A single
+    
+        is_deeply( $obj->method($MEANINGLESS), $A_REF, '2B array_ref' );
+        #{ expects => xxxx, return => $A_REF }, #2B array_ref
+    
+        is_deeply( $obj->method($MEANINGLESS), $H_REF, '2C hash_ref' );
+        #{ expects => xxxx, return => $H_REF }, #2C hash_ref
+    
+        is_deeply( $obj->method($MEANINGLESS), [ @COMPLEX ], '2D nested array_ref' );
+        #{ expects => xxxx, return => [ @COMPLEX ] }, #2D multi value
+    
+        is_deeply( [$obj->method($MEANINGLESS)], [@ARRAY], '2E array' );
+        #{ expects => xxxx, return => sub{ @ARRAY } }, #2E array
+    
+        is_deeply( [$obj->method($MEANINGLESS)], [%HASH], '2F hash' );
+        #{ expects => xxxx, return => sub{ %HASH } }, #2F hash
+    };
+    
+    subtest "dont check argument using type (Test::Deep)" => sub {
+        $obj->method(sub{},1);
+        #{ expects => [ignore, 1], return => xxxx },
+    };
+    
+    subtest "check method argument using type (Test::Deep::Matcher)" => sub {
+        $obj->method(1);
+        #{ expects => [is_integer], return => xxxx },
+        $obj->method("AAAA");
+        #{ expects => [is_string],  return => xxxx },
+    };
 
-    is_deeply(
-        $obj->get_authorized_user(),
-        [
-            { id => 1, name => 'user1' },
-            { id => 3, name => 'user3' },
-            { id => 4, name => 'user4' },
-        ],
-        'get_authorized_user is as You expected'
-    );
+done_testing;
 
-    done_testing;
 
 =head1 DESCRIPTION
 
