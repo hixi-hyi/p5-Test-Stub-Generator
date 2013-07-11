@@ -20,7 +20,8 @@ package main;
 
 my $MEANINGLESS = -1;
 
-*Some::Class::method = make_method(
+my ($method, $util) = make_method_utils(
+#my $method = make_method(
     [
         # checking argument
         { expects => [ 0, 1 ], return => $MEANINGLESS },
@@ -36,8 +37,8 @@ my $MEANINGLESS = -1;
     }
 );
 
+*Some::Class::method = $method;
 my $obj = Some::Class->new;
-
 
 $obj->method( 0, 1 );
 # { expects => [ 0, 1 ], return => xxxx }
@@ -54,6 +55,9 @@ $obj->method( sub{}, 1 );
 $obj->method(1);
 # { expects => [is_integer], return => xxxx }
 # ok xxxx- [synopisis] arguments are as You expected
+
+ok(!$util->has_next, 'empty');
+is $util->called_count, 4, 'called_count is 4';
 
 done_testing;
 

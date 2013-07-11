@@ -36,16 +36,17 @@ package main;
 
 subtest 'can get all users info' => sub {
     my $obj = Some::Class->new;
+    my $get_user_by_id = make_method(
+        [
+            # checking arguments and control return_values
+            { expects => [ 1 ], return => { id => 1, name => 'user1' } },
+            { expects => [ 2 ], return => { id => 2, name => 'user2' } },
+        ],
+        { display  => 'get_user_by_id' }
+    );
     my $guard = mock_guard(
         $obj => {
-            'get_user_by_id' => make_method(
-                [
-                    # checking arguments and control return_values
-                    { expects => [ 1 ], return => { id => 1, name => 'user1' } },
-                    { expects => [ 2 ], return => { id => 2, name => 'user2' } },
-                ],
-                { display  => 'get_user_by_id' }
-            ),
+            'get_user_by_id' => $get_user_by_id,
         },
     );
 
@@ -64,7 +65,7 @@ subtest 'cannot get users info' => sub {
     my $obj = Some::Class->new;
     my $guard = mock_guard(
         $obj => {
-            'get_user_by_id' => make_method(
+            'get_user_by_id' => scalar make_method(
                 [
                     # checking arguments and control return_values
                     { expects => [ 1 ], return => undef },
