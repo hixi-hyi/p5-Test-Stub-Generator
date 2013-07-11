@@ -37,7 +37,7 @@ package main;
 my $obj = Some::Class->new;
 my $guard = mock_guard(
     $obj => {
-        'has_permission' => make_method(
+        'has_permission' => scalar make_method(
             [
                 # checking arguments and control return_values
                 { expects => [is_integer], return => 1 },

@@ -5,6 +5,7 @@ requires 'Test::Deep';
 
 requires 'Exporter';
 requires 'Carp';
+requires 'Class::Monadic';
 
 on 'test' => sub {
     requires 'Test::Tester';
