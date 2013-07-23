@@ -11,7 +11,7 @@ use Carp qw(croak);
 use Class::Monadic;
 use Data::Util qw(is_array_ref is_code_ref);
 
-our $VERSION   = "0.01";
+our $VERSION   = "0.02";
 our @EXPORT    = qw(make_subroutine make_method);
 our @EXPORT_OK = qw(
     make_subroutine_utils
