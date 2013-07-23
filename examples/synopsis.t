@@ -20,7 +20,7 @@ package main;
 
 my $MEANINGLESS = -1;
 
-my ($method, $util) = make_method_utils(
+my ($stub_method, $util) = make_method_utils(
 #my $method = make_method(
     [
         # checking argument
@@ -29,20 +29,20 @@ my ($method, $util) = make_method_utils(
         { expects => [$MEANINGLESS], return => [ 0, 1 ] },
 
         # expects supported ignore(Test::Deep) and type(Test::Deep::Matcher)
-        { expects => [ignore, 1], return => $MEANINGLESS },
+        { expects => [ignore, 1],  return => $MEANINGLESS },
         { expects => [is_integer], return => $MEANINGLESS },
     ],
-    {
-        display => 'synopisis'
-    }
+    { message => 'method arguments are ok' }
 );
 
-*Some::Class::method = $method;
 my $obj = Some::Class->new;
+*Some::Class::method = $stub_method;
+# ( or use Test::Mock::Guard )
+# my $mock_guard = mock_guard( $obj => +{ method => $stub_method } );
 
-$obj->method( 0, 1 );
 # { expects => [ 0, 1 ], return => xxxx }
-# ok xxxx- [synopisis] arguments are as You expected
+$obj->method( 0, 1 );
+# ok xxxx- method arguments are ok
 
 is_deeply( $obj->method($MEANINGLESS), [ 0, 1 ], 'return values are as You expected' );
 # { expects => xxxx, return => [ 0, 1 ] }
@@ -50,14 +50,14 @@ is_deeply( $obj->method($MEANINGLESS), [ 0, 1 ], 'return values are as You expec
 
 $obj->method( sub{}, 1 );
 # { expects => [ignore, 1], return => xxxx }
-# ok xxxx- [synopisis] arguments are as You expected
+# ok xxxx- method arguments are ok
 
 $obj->method(1);
 # { expects => [is_integer], return => xxxx }
-# ok xxxx- [synopisis] arguments are as You expected
+# ok xxxx- method arguments are ok
 
-ok(!$util->has_next, 'empty');
-is $util->called_count, 4, 'called_count is 4';
+ok( !$util->has_next, 'empty' );
+is( $util->called_count, 4, 'called_count is 4' );
 
 done_testing;
 

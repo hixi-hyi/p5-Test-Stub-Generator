@@ -4,7 +4,7 @@ use warnings;
 use Test::More;
 use Test::Deep::Matcher qw(is_integer is_string);
 use Test::Mock::Guard;
-use Test::Stub::Generator;
+use Test::Stub::Generator qw(make_repeat_method);
 
 ###
 # sample package (for mocking test)
@@ -37,15 +37,10 @@ package main;
 my $obj = Some::Class->new;
 my $guard = mock_guard(
     $obj => {
-        'has_permission' => scalar make_method(
-            [
-                # checking arguments and control return_values
-                { expects => [is_integer], return => 1 },
-            ],
-            {
-                is_repeat => 1,
-                display  => 'get_user_by_id' 
-            }
+        'has_permission' => make_repeat_method(
+            # checking arguments and control return_values
+            { expects => [is_integer], return => 1 },
+            { message => "has_permission's arguments is ok" },
         ),
     },
 );
@@ -53,7 +48,7 @@ my $guard = mock_guard(
 is_deeply(
     $obj->get_authorized_user_id([1,2]),
     [1,2],
-    'get_users is as You expected'
+    'get_authorized_user_id is ok'
 );
 
 done_testing;
