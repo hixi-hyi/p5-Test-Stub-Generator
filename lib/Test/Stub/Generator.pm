@@ -187,23 +187,31 @@ Test::Stub::Generator is library for supports the programmer in wriring test cod
 
 =head1 Functions
 
-=head2 make_subroutine($expects_and_return_list, $opts)
+=head2 make_subroutine($expects_and_return, $opts)
 
 simulate subroutine (do not receive $self)
 
-=head2 make_method($expects_and_return_list, $opts)
+=head2 make_method($expects_and_return, $opts)
 
 simulate object method (receive $self)
 
 =head1 Parameters
 
-=head2 $expects_and_return_list(first arguments)
+=head2 $expects_and_return(first arguments)
 
+$expects_and_return required the hash_ref (single or array_ref)
+
+  my $method = make_method(
+      { expects => [1], return => 2 }
+  );
   my $method = make_method(
     [
       { expects => [1], return => 2 }
+      { expects => [2], return => 3 }
     ]
   );
+
+=over
 
 =item expects
 
@@ -217,27 +225,34 @@ control return_value
 
     my $return = $method->(1); # $return = 2;
 
+=back
+
 =head2 $opts(second arguments)
 
   my $method = make_method(
-    [
-      { expects => [1], return => 2 }
-    ],
-    { display => "display name", is_repeat => 1 }
+    { expects => [1], return => 2 },
+    { message => "arguments are ok", is_repeat => 1 }
   );
 
-=item display
+=over
 
-change displayed name when testing
+=item message
+
+change message
 
 =item is_repeat
 
-repeat mode ( repeating $expects_and_return_list->{0] )
+repeat mode ( repeating $expects_and_return->{0] )
+( can use make_repeat_method / make_repeat_subroutine )
+
+=back
 
 =head1 Utility Method (second return_value method)
 
-  my ($method, $util) = make_subroutine_utils($expects_and_return_list, $opts)
-  my ($method, $util) = make_method_utils($expects_and_return_list, $opts)
+  my ($method, $util) = make_subroutine_utils($expects_and_return, $opts)
+  my ($method, $util) = make_method_utils($expects_and_return, $opts)
+
+=over
 
 =item $util->called_count
 
@@ -252,6 +267,8 @@ if there are not, then false(0).
 =item $util->is_repeat
 
 return a value $opt->{is_repeat}
+
+=back
 
 =head1 Setting Sheat
 

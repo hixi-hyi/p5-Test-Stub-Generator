@@ -73,71 +73,76 @@ Test::Stub::Generator is library for supports the programmer in wriring test cod
 
 # Functions
 
-## make\_subroutine($expects\_and\_return\_list, $opts)
+## make\_subroutine($expects\_and\_return, $opts)
 
 simulate subroutine (do not receive $self)
 
-## make\_method($expects\_and\_return\_list, $opts)
+## make\_method($expects\_and\_return, $opts)
 
 simulate object method (receive $self)
 
 # Parameters
 
-## $expects\_and\_return\_list(first arguments)
+## $expects\_and\_return(first arguments)
 
+$expects\_and\_return required the hash\_ref (single or array\_ref)
+
+    my $method = make_method(
+        { expects => [1], return => 2 }
+    );
     my $method = make_method(
       [
         { expects => [1], return => 2 }
+        { expects => [2], return => 3 }
       ]
     );
 
 - expects
 
-automaic checking $method\_argument
+    automaic checking $method\_argument
 
-    $method->(1); # ok xxxx- [stub] arguments are as You expected
+        $method->(1); # ok xxxx- [stub] arguments are as You expected
 
 - return
 
-control return\_value
+    control return\_value
 
-    my $return = $method->(1); # $return = 2;
+        my $return = $method->(1); # $return = 2;
 
 ## $opts(second arguments)
 
     my $method = make_method(
-      [
-        { expects => [1], return => 2 }
-      ],
-      { display => "display name", is_repeat => 1 }
+      { expects => [1], return => 2 },
+      { message => "arguments are ok", is_repeat => 1 }
     );
 
-- display
+- message
 
-change displayed name when testing
+    change message
 
 - is\_repeat
 
-repeat mode ( repeating $expects\_and\_return\_list->{0\] )
+    repeat mode ( repeating $expects\_and\_return->{0\] )
+    ( can use make\_repeat\_method / make\_repeat\_subroutine )
 
 # Utility Method (second return\_value method)
 
-    my ($method, $util) = make_subroutine_utils($expects_and_return_list, $opts)
-    my ($method, $util) = make_method_utils($expects_and_return_list, $opts)
+    my ($method, $util) = make_subroutine_utils($expects_and_return, $opts)
+    my ($method, $util) = make_method_utils($expects_and_return, $opts)
 
 - $util->called\_count
 
-return a number of times that was method called
+    return a number of times that was method called
 
 - $util->has\_next
 
-return a boolean.
-if there are still more $expects\_and\_return\_list, then true(1).
-if there are not, then false(0).
+    return a boolean.
+    if there are still more $expects\_and\_return\_list, then true(1).
+    if there are not, then false(0).
 
 - $util->is\_repeat
 
-return a value $opt->{is\_repeat}
+    return a value $opt->{is\_repeat}
 
 # Setting Sheat
 
