@@ -3,7 +3,7 @@ use warnings;
 
 use Test::More;
 use Test::Deep;
-use Test::Stub::Generator;
+use Test::Stub::Generator qw(make_subroutine);
 
 my $some_method = make_subroutine(
     [
@@ -11,7 +11,6 @@ my $some_method = make_subroutine(
         { expects => [0], return => sub { (a => 1) } },
         { expects => [0], return => sub { sub {} }  },
     ]
-
 );
 
 

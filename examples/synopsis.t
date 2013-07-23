@@ -4,7 +4,7 @@ use warnings;
 use Test::More;
 use Test::Deep;
 use Test::Deep::Matcher;
-use Test::Stub::Generator;
+use Test::Stub::Generator qw(make_method_utils);
 
 ###
 # sample package

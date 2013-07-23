@@ -9,97 +9,62 @@ use Test::Deep;
 use Exporter qw(import);
 use Carp qw(croak);
 use Class::Monadic;
+use Data::Util qw(is_array_ref is_code_ref);
 
 our $VERSION   = "0.01";
-our @EXPORT    = qw(make_subroutine make_subroutine_utils make_method make_method_utils);
-our @EXPORT_OK = qw(make_subroutine_from_list make_method_from_list);
+our @EXPORT    = qw(make_subroutine make_method);
+our @EXPORT_OK = qw(
+    make_subroutine_utils
+    make_method_utils
+    make_repeat_subroutine
+    make_repeat_method
+);
 
 sub make_subroutine {
-    my ($ers, $opts) = @_;
-    $opts ||= {};
-    return scalar _build_subroutine( $ers, { %{$opts}, is_object => 0 } );
+    my (@args)  = @_;
+    return _convert_build( [@args], is_object => 0 );
 }
 
 sub make_subroutine_utils {
-    my ($ers, $opts) = @_;
-    $opts ||= {};
-    return _build_subroutine( $ers, { %{$opts}, is_object => 0 } );
+    my (@args)  = @_;
+    return _convert_build( [@args], is_object => 0, want_utils => 1 );
+}
+
+sub make_repeat_subroutine {
+    my (@args)  = @_;
+    return _convert_build( [@args], is_object => 0, is_repeat => 1 );
 }
 
 sub make_method {
-    my ($ers, $opts) = @_;
-    $opts ||= {};
-    return scalar _build_subroutine( $ers, { %{$opts}, is_object => 1 } );
+    my (@args)  = @_;
+    return _convert_build( [@args], is_object => 1 );
 }
 
 sub make_method_utils {
-    my ($ers, $opts) = @_;
+    my (@args)  = @_;
+    return _convert_build( [@args], is_object => 1, want_utils => 1 );
+}
+
+sub make_repeat_method {
+    my (@args)  = @_;
+    return _convert_build( [@args], is_object => 1, is_repeat => 1 );
+}
+
+sub _convert_build {
+    my ($args, %inner_opts) = @_;
+    my ($exp_ret_list, $opts) = @$args;
+    $exp_ret_list = [$exp_ret_list] unless is_array_ref $exp_ret_list;
     $opts ||= {};
-    return _build_subroutine( $ers, { %{$opts}, is_object => 1 } );
+    return _build( $exp_ret_list, { %{ $opts }, %inner_opts } );
 }
 
-sub make_subroutine_from_list {
-    my %args = @_;
-    my $opts = $args{opts} || {};
-    return scalar _from_list(
-        $args{expects},
-        $args{return},
-        { %{ $opts }, is_object => 0 },
-    );
-}
+sub _build {
+    my ($exp_ret_list, $opts) = @_;
 
-sub make_subroutine_utils_from_list {
-    my %args = @_;
-    my $opts = $args{opts} || {};
-    return _from_list(
-        $args{expects},
-        $args{return},
-        { %{ $opts }, is_object => 0 },
-    );
-}
-
-sub make_method_from_list {
-    my %args = @_;
-    my $opts = $args{opts} || {};
-    return scalar _from_list(
-        $args{expects},
-        $args{return},
-        { %{ $opts }, is_object => 1 },
-    );
-}
-
-sub make_method_utils_from_list {
-    my %args = @_;
-    my $opts = $args{opts} || {};
-    return _from_list(
-        $args{expects},
-        $args{return},
-        { %{ $opts }, is_object => 1 },
-    );
-}
-
-sub _from_list {
-    my ( $expects, $return, $opts ) = @_;
-    if( scalar @{$expects} != scalar @{$return} ) {
-        croak "expects size and return size are different";
-    }
-    my $er_list = [];
-    for (my $i = 0; $i < scalar @$expects; $i++){
-        push @$er_list, {
-            expects => $expects->[$i],
-            return  => $return->[$i],
-        };
-    }
-
-    return _build_subroutine( $er_list, $opts );
-}
-
-sub _build_subroutine {
-    my ($er_list, $opts) = @_;
-
-    my $display    = $opts->{display}   || 'stub';
-    my $is_object  = $opts->{is_object} || 0;
-    my $is_repeat  = $opts->{is_repeat} || 0;
+    my $display    = $opts->{display}    || 'stub';
+    my $is_object  = $opts->{is_object}  || 0;
+    my $is_repeat  = $opts->{is_repeat}  || 0;
+    my $want_utils = $opts->{want_utils} || 0;
     my $call_count = 0;
 
     my $method = sub {
@@ -107,29 +72,29 @@ sub _build_subroutine {
         shift @$input if $is_object;
         $call_count++;
 
-        my $er = $is_repeat? $er_list->[0] : shift @$er_list;
-        unless ( defined $er ) {
+        my $element = $is_repeat ? $exp_ret_list->[0] : shift @$exp_ret_list;
+        unless ( defined $element ) {
             fail 'expects and return are already empty.';
             return undef;
         }
 
-        my $expects = $er->{expects};
-        my $return  = $er->{return};
+        my $expects = $element->{expects};
+        my $return  = $element->{return};
 
         cmp_deeply($input, $expects, "[$display] arguments are as You expected")
             or note explain +{ input => $input, expects => $expects };
 
-        return (ref $return eq 'CODE')? $return->() : $return;
+        return is_code_ref($return) ? $return->() : $return;
     };
 
-    if (!wantarray) {
+    unless ($want_utils) {
         return $method;
     }
 
-    my $util = bless( {}, 'Test::Stub::Generator::Util' );
-    Class::Monadic->initialize($util)->add_methods(
+    my $utils = bless( {}, 'Test::Stub::Generator::Util' );
+    Class::Monadic->initialize($utils)->add_methods(
         has_next => sub {
-            return @$er_list ? 1 : 0;
+            return @$exp_ret_list ? 1 : 0;
         },
         is_repeat => sub {
             return $is_repeat;
@@ -139,7 +104,7 @@ sub _build_subroutine {
         },
     );
 
-    return ($method, $util);
+    return ($method, $utils);
 }
 
 1;
@@ -158,7 +123,7 @@ Test::Stub::Generator - be able to generate stub (submodule and method) having c
     use Test::More;
     use Test::Deep;
     use Test::Deep::Matcher;
-    use Test::Stub::Generator;
+    use Test::Stub::Generator qw(make_method_utils);
 
     ###
     # sample package
@@ -177,7 +142,7 @@ Test::Stub::Generator - be able to generate stub (submodule and method) having c
     my ($method, $util) = make_method_utils(
     #my $method = make_method(
         [
-            # automatic checking method arguments
+            # checking argument
             { expects => [ 0, 1 ], return => $MEANINGLESS },
             # control return_values
             { expects => [$MEANINGLESS], return => [ 0, 1 ] },
@@ -194,25 +159,21 @@ Test::Stub::Generator - be able to generate stub (submodule and method) having c
     *Some::Class::method = $method;
     my $obj = Some::Class->new;
 
-    # { expects => [ 0, 1 ], return => xxxx }
     $obj->method( 0, 1 );
+    # { expects => [ 0, 1 ], return => xxxx }
     # ok xxxx- [synopisis] arguments are as You expected
-    # ( automaic checking method arguments )
 
-    # { expects => xxxx, return => [ 0, 1 ] }
     is_deeply( $obj->method($MEANINGLESS), [ 0, 1 ], 'return values are as You expected' );
+    # { expects => xxxx, return => [ 0, 1 ] }
     # ok xxxx- return values are as You expected
-    # ( control method return_value )
 
-    # { expects => [ignore, 1], return => xxxx }
     $obj->method( sub{}, 1 );
+    # { expects => [ignore, 1], return => xxxx }
     # ok xxxx- [synopisis] arguments are as You expected
-    # ( automatic checking to exclude ignore fields )
 
-    # { expects => [is_integer], return => xxxx }
     $obj->method(1);
+    # { expects => [is_integer], return => xxxx }
     # ok xxxx- [synopisis] arguments are as You expected
-    # ( automatic checking to use Test::Deep::Matcher )
 
     ok(!$util->has_next, 'empty');
     is $util->called_count, 4, 'called_count is 4';

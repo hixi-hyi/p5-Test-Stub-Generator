@@ -9,7 +9,7 @@ Test::Stub::Generator - be able to generate stub (submodule and method) having c
     use Test::More;
     use Test::Deep;
     use Test::Deep::Matcher;
-    use Test::Stub::Generator;
+    use Test::Stub::Generator qw(make_method_utils);
 
     ###
     # sample package
@@ -28,7 +28,7 @@ Test::Stub::Generator - be able to generate stub (submodule and method) having c
     my ($method, $util) = make_method_utils(
     #my $method = make_method(
         [
-            # automatic checking method arguments
+            # checking argument
             { expects => [ 0, 1 ], return => $MEANINGLESS },
             # control return_values
             { expects => [$MEANINGLESS], return => [ 0, 1 ] },
@@ -45,25 +45,21 @@ Test::Stub::Generator - be able to generate stub (submodule and method) having c
     *Some::Class::method = $method;
     my $obj = Some::Class->new;
 
-    # { expects => [ 0, 1 ], return => xxxx }
     $obj->method( 0, 1 );
+    # { expects => [ 0, 1 ], return => xxxx }
     # ok xxxx- [synopisis] arguments are as You expected
-    # ( automaic checking method arguments )
 
-    # { expects => xxxx, return => [ 0, 1 ] }
     is_deeply( $obj->method($MEANINGLESS), [ 0, 1 ], 'return values are as You expected' );
+    # { expects => xxxx, return => [ 0, 1 ] }
     # ok xxxx- return values are as You expected
-    # ( control method return_value )
 
-    # { expects => [ignore, 1], return => xxxx }
     $obj->method( sub{}, 1 );
+    # { expects => [ignore, 1], return => xxxx }
     # ok xxxx- [synopisis] arguments are as You expected
-    # ( automatic checking to exclude ignore fields )
 
-    # { expects => [is_integer], return => xxxx }
     $obj->method(1);
+    # { expects => [is_integer], return => xxxx }
     # ok xxxx- [synopisis] arguments are as You expected
-    # ( automatic checking to use Test::Deep::Matcher )
 
     ok(!$util->has_next, 'empty');
     is $util->called_count, 4, 'called_count is 4';

@@ -2,7 +2,7 @@ use strict;
 use warnings;
 
 use Test::More;
-use Test::Stub::Generator;
+use Test::Stub::Generator qw(make_subroutine);
 
 my $some_method = make_subroutine(
     [

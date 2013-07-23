@@ -4,15 +4,11 @@ use warnings;
 use Test::Tester;
 use Test::More;
 use Test::Deep::Matcher;
-use Test::Stub::Generator;
+use Test::Stub::Generator qw(make_subroutine);
 
 my $some_method = make_subroutine(
-    [
-        { expects => [is_integer], return => [0] },
-    ],
-    {
-        is_repeat => 1,
-    }
+    { expects => [is_integer], return => [0] },
+    { is_repeat => 1 },
 );
 
 check_test(

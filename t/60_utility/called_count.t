@@ -2,7 +2,7 @@ use strict;
 use warnings;
 
 use Test::More;
-use Test::Stub::Generator;
+use Test::Stub::Generator qw(make_method_utils);
 
 package Some::Class;
 sub new { bless {}, shift }
@@ -11,13 +11,8 @@ sub increment;
 package main;
 
 my ($method, $util) = make_method_utils(
-    [
-        { expects => [0], return => 1, },
-    ],
-    {
-        is_repeat => 1,
-        display   => 'method',
-    }
+    { expects => [0], return => 1 },
+    { is_repeat => 1 }
 );
 
 my $obj = Some::Class->new;

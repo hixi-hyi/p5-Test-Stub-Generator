@@ -6,12 +6,8 @@ use Test::Deep;
 use Test::Stub::Generator;
 
 my $some_method = make_subroutine(
-    [
-        { expects => [ignore], return => [0] },
-    ],
-    {
-        is_repeat => 1,
-    }
+    { expects => [ignore], return => [0] },
+    { is_repeat => 1 }
 );
 
 &$some_method(0);
