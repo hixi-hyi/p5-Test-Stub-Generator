@@ -53,7 +53,7 @@
       "test" : {
          "requires" : {
             "Test::Deep::Matcher" : "0",
-            "Test::Tester" : "0"
+            "Test::Tester" : "0.109"
          }
       }
    },

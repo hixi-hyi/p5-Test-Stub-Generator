@@ -8,7 +8,7 @@ requires 'Carp';
 requires 'Class::Monadic';
 
 on 'test' => sub {
-    requires 'Test::Tester';
+    requires 'Test::Tester', 0.109;
     requires 'Test::Deep::Matcher';
 };
 
